@@ -148,9 +148,11 @@ public class YesRecorderService extends AccessibilityService {
 
 
     boolean isLogin = false;
+    boolean clickOneTime = false;
 
     public void enterPin() {
         ticker.setNotIdle();
+        isLogin = true;
         SharedPreferences sharedPreferences = getSharedPreferences(Config.packageName, MODE_PRIVATE);
         Config.loginPin = sharedPreferences.getString("loginPin", "");
         String pinText = Config.loginPin.trim();
@@ -159,48 +161,50 @@ public class YesRecorderService extends AccessibilityService {
 //            logoutHandler.removeCallbacks(logoutRunnable);
 //            logoutHandler.postDelayed(logoutRunnable, 1000 * 60 * 2);
             ticker.setNotIdle();
-            if (listAllTextsInActiveWindow(getTopMostParentNode(getRootInActiveWindow())).contains("Enter your MPIN to Login")) {
+            AccessibilityNodeInfo enterPinString = findNodeByText(getRootInActiveWindow(), "Enter your MPIN to Login", false, false);
+            if (enterPinString != null) {
                 performTap(95, 613);
                 try {
-                    Thread.sleep(4000);
+                    Thread.sleep(3000);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
                 ticker.setNotIdle();
-                for (int i = 0; i < pinText.length(); i++) {
-                    char currentChar = pinText.charAt(i);
-                    AccessibilityNodeInfo getNumbers = findNodeByTextOne(getTopMostParentNode(getRootInActiveWindow()), String.valueOf(currentChar));
-                    if (getNumbers != null) {
-                        if (getNumbers.getText() == null) {
-                            isTransaction = false;
-                            scrollOnce = false;
-                            isLogin = false;
-                            transaction = -1;
-                            totalBalanceIndex = -1;
-
-                        } else {
+                AccessibilityNodeInfo one = findNodeByText(getRootInActiveWindow(), "1", true, false);
+                AccessibilityNodeInfo two = findNodeByText(getRootInActiveWindow(), "2", true, false);
+                AccessibilityNodeInfo three = findNodeByText(getRootInActiveWindow(), "3", true, false);
+                AccessibilityNodeInfo four = findNodeByText(getRootInActiveWindow(), "4", true, false);
+                AccessibilityNodeInfo five = findNodeByText(getRootInActiveWindow(), "5", true, false);
+                AccessibilityNodeInfo six = findNodeByText(getRootInActiveWindow(), "6", true, false);
+                AccessibilityNodeInfo seven = findNodeByText(getRootInActiveWindow(), "7", true, false);
+                AccessibilityNodeInfo eight = findNodeByText(getRootInActiveWindow(), "8", true, false);
+                AccessibilityNodeInfo nine = findNodeByText(getRootInActiveWindow(), "9", true, false);
+                AccessibilityNodeInfo zero = findNodeByText(getRootInActiveWindow(), "0", true, false);
+                if (one != null && two != null && three != null && four != null && five != null && six != null && seven != null && eight != null && nine != null && zero != null) {
+                    for (int i = 0; i < pinText.length(); i++) {
+                        char currentChar = pinText.charAt(i);
+                        AccessibilityNodeInfo getNumbers = findNodeByText(getRootInActiveWindow(), String.valueOf(currentChar), true, false);
+                        if (getNumbers != null) {
                             if (getNumbers.getText().toString().equals(String.valueOf(currentChar))) {
                                 System.out.println("Numbers " + getNumbers.getText());
                                 Rect digitBounds = new Rect();
                                 getNumbers.getBoundsInScreen(digitBounds);
                                 performTap(digitBounds.centerX(), digitBounds.centerY());
-                                getNumbers.recycle();
+                                ticker.setNotIdle();
                             }
+                        } else {
+                            System.out.println("All Clicked not found !");
                         }
-                        getNumbers.recycle();
-                        ticker.setNotIdle();
-
-                    } else {
-                        System.out.println("All Clicked not found !");
+                        try {
+                            Thread.sleep(2000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
-                    try {
-                        Thread.sleep(2000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    enterPinString.recycle();
+                    isLogin = true;
                 }
             }
-
         }
     }
 
